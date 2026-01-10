@@ -1,0 +1,23 @@
+# FastAPI & Web Framework
+fastapi>=0.95.0
+uvicorn>=0.20.0
+python-multipart>=0.0.6
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Database
+pymongo>=4.5.0
+motor>=3.3.0
+
+# NLP & Machine Learning (using numpy-based solutions to avoid Rust/C compilation)
+scikit-learn>=1.3.0
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Utilities
+requests>=2.31.0
+geopy>=2.4.0
+
+# Testing
+pytest>=7.4.0
+httpx>=0.25.0
