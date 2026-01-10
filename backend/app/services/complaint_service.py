@@ -15,7 +15,8 @@ class ComplaintService:
 
     async def create_complaint(self, complaint: Complaint) -> str:
         """Create new complaint"""
-        complaint_dict = complaint.dict(exclude_unset=True)
+        # Persist full document including generated timestamp
+        complaint_dict = complaint.model_dump(by_alias=True, exclude_none=True)
         result = await self.collection.insert_one(complaint_dict)
         return str(result.inserted_id)
 

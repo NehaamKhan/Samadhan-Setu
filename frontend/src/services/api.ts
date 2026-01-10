@@ -16,13 +16,16 @@ const apiClient = axios.create({
 });
 
 export const complaintApi = {
-  // Submit a new complaint
-  submit: (complaint: any) =>
-    apiClient.post('/api/complaints/submit', complaint),
-    
-  submitComplaint: (text: string, latitude: number, longitude: number, ward?: string) =>
+  // Submit a new complaint (backend expects query params)
+  submitComplaint: (
+    text: string,
+    latitude: number,
+    longitude: number,
+    ward?: string,
+    areaName?: string,
+  ) =>
     apiClient.post('/api/complaints/submit', null, {
-      params: { text, latitude, longitude, ward },
+      params: { text, latitude, longitude, ward, area_name: areaName },
     }),
 
   // Get recent complaints

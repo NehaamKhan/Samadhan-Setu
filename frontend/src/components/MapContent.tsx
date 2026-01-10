@@ -1,14 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-import { FiInfo, FiMapPin } from 'react-icons/fi';
-
-const colorMap = {
-  red: '#ef4444',
-  yellow: '#eab308',
-  green: '#22c55e',
-};
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { FiInfo } from 'react-icons/fi';
+import L from 'leaflet';
+import 'leaflet.heat';
 
 interface HeatmapPoint {
   id: string;
@@ -27,6 +23,42 @@ interface MapContentProps {
   onPointClick?: (point: HeatmapPoint) => void;
 }
 
+const HeatLayer: React.FC<{ data: HeatmapPoint[] }> = ({ data }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    // Weight heat intensity primarily by complaint density, with a small
+    // contribution from priority score to emphasize critical clusters.
+    const maxCount = Math.max(...data.map((p) => p.complaint_count), 1);
+    const points: [number, number, number][] = data.map((p) => {
+      const densityWeight = p.complaint_count / maxCount; // 0..1
+      const priorityWeight = Math.min(1, Math.max(0, p.priority_score / 10)); // 0..1
+      const weight = Math.min(1, densityWeight * 0.7 + priorityWeight * 0.3);
+      return [p.latitude, p.longitude, weight];
+    });
+
+    const layer = (L as any).heatLayer(points, {
+      radius: 28,
+      blur: 18,
+      maxZoom: 17,
+      gradient: {
+        0.0: '#0a3b69',
+        0.2: '#2563eb',
+        0.4: '#22c55e',
+        0.7: '#f59e0b',
+        1.0: '#ef4444',
+      },
+    });
+
+    layer.addTo(map);
+    return () => {
+      layer.remove();
+    };
+  }, [data, map]);
+
+  return null;
+};
+
 export const MapContent: React.FC<MapContentProps> = ({ data, onPointClick }) => {
   const mapCenter: [number, number] = [
     parseFloat(process.env.NEXT_PUBLIC_MAP_CENTER_LAT || '28.7041'),
@@ -34,93 +66,37 @@ export const MapContent: React.FC<MapContentProps> = ({ data, onPointClick }) =>
   ];
 
   const zoomLevel = parseInt(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL || '12');
-
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={zoomLevel}
-      style={{ width: '100%', height: '100%' }}
-      className="rounded-xl"
-    >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      />
+    <div className="relative w-full h-full">
+      <MapContainer
+        center={mapCenter}
+        zoom={zoomLevel}
+        style={{ width: "100%", height: "100%" }}
+        className="rounded-xl"
+      >
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+        <HeatLayer data={data} />
+      </MapContainer>
 
-      {data.map((point) => {
-        const colorValue = colorMap[point.color as keyof typeof colorMap] || '#22c55e';
-        const radius = Math.sqrt(point.complaint_count) * 2;
-        
-        return (
-          <CircleMarker
-            key={point.id}
-            center={[point.latitude, point.longitude]}
-            pathOptions={{
-              fillColor: colorValue,
-              color: colorValue,
-              weight: 3,
-              opacity: 0.9,
-              fillOpacity: 0.7,
-              radius: radius,
-            }}
-            eventHandlers={{
-              click: () => onPointClick?.(point),
-            }}
-          >
-            <Popup>
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-4 rounded-lg text-white w-64 shadow-xl border border-slate-700">
-                {/* Header */}
-                <div className="flex items-start gap-2 mb-3 pb-3 border-b border-slate-600">
-                  <FiMapPin className="text-blue-400 mt-0.5 flex-shrink-0" size={18} />
-                  <div className="flex-1">
-                    <p className="font-bold text-base text-white">{point.summary}</p>
-                    <p className="text-xs text-slate-400 mt-1">{point.intensity} Priority Area</p>
-                  </div>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3">
-                    <p className="text-xs text-blue-300 uppercase font-bold mb-1">Reports</p>
-                    <p className="text-2xl font-black text-blue-400">{point.complaint_count}</p>
-                  </div>
-                  <div className="bg-purple-900/30 border border-purple-500/30 rounded-lg p-3">
-                    <p className="text-xs text-purple-300 uppercase font-bold mb-1">Priority</p>
-                    <p className="text-2xl font-black text-purple-400">{point.priority_score.toFixed(1)}</p>
-                  </div>
-                </div>
-
-                {/* Categories */}
-                <div className="mb-3">
-                  <p className="text-xs text-slate-400 uppercase font-bold mb-2">Categories</p>
-                  <div className="flex flex-wrap gap-1">
-                    {point.categories.slice(0, 3).map((cat, i) => (
-                      <span
-                        key={i}
-                        className="bg-slate-700/50 text-slate-200 text-xs px-2 py-1 rounded-md border border-slate-600"
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                    {point.categories.length > 3 && (
-                      <span className="bg-slate-700/50 text-slate-400 text-xs px-2 py-1 rounded-md border border-slate-600">
-                        +{point.categories.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-lg p-2">
-                  <div className="flex items-center gap-2">
-                    <FiInfo size={14} className="text-blue-400 flex-shrink-0" />
-                    <p className="text-xs text-blue-200">Click for detailed analysis</p>
-                  </div>
-                </div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        );
-      })}
-    </MapContainer>
+      {/* Legend */}
+      <div className="absolute left-4 bottom-4 z-[1000] bg-white/90 border border-slate-200 rounded-md p-3 w-64 shadow">
+        <div className="text-xs text-slate-800 font-semibold mb-2 flex items-center gap-2">
+          <FiInfo className="text-blue-600" />
+          Intensity Scale
+        </div>
+        <div
+          className="h-2 w-full rounded"
+          style={{
+            background:
+              'linear-gradient(to right, #0a3b69 0%, #2563eb 25%, #22c55e 50%, #f59e0b 75%, #ef4444 100%)',
+          }}
+        />
+        <div className="flex justify-between text-[10px] text-slate-600 mt-1">
+          <span>Low</span>
+          <span>Medium</span>
+          <span>High</span>
+        </div>
+      </div>
+    </div>
   );
 };

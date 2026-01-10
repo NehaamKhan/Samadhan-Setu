@@ -59,18 +59,21 @@ export default function SubmitPage() {
     setError('');
     
     try {
-      const complaint = {
-        category: formData.category,
-        description: formData.description,
-        location: {
-          type: 'Point',
-          coordinates: [parseFloat(formData.longitude), parseFloat(formData.latitude)],
-        },
-        location_name: formData.locationName || 'Not specified',
-        timestamp: new Date().toISOString(),
-      };
+      const latitude = parseFloat(formData.latitude);
+      const longitude = parseFloat(formData.longitude);
 
-      await complaintApi.submit(complaint);
+      if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+        setError('Please provide valid numeric coordinates.');
+        return;
+      }
+
+      await complaintApi.submitComplaint(
+        formData.description,
+        latitude,
+        longitude,
+        undefined,
+        formData.locationName || undefined,
+      );
       setSuccess(true);
       setFormData({
         category: '',
