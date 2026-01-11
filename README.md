@@ -1,4 +1,4 @@
-# CivicMind: Smart Civic Intelligence Platform
+# Samadhan Setu: Smart Civic Intelligence Platform
 
 A hackathon project that transforms civic complaints into actionable intelligence for municipal authorities using AI-powered classification, clustering, and geospatial visualization.
 
@@ -14,7 +14,7 @@ Transform the chaotic noise of civic complaints into clear, prioritized, and act
 
 ## Solution
 
-CivicMind aggregates multi-modal complaints (text/voice), uses NLP to classify and cluster them, generates geospatial heat maps, and presents a prioritized dashboard to authorities.
+Samadhan Setu aggregates multi-modal complaints (text/voice), uses NLP to classify and cluster them, generates geospatial heat maps, and presents a prioritized dashboard to authorities.
 
 ## Tech Stack
 

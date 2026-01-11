@@ -12,19 +12,28 @@ class NLPService:
         """Initialize keyword maps for categories and sentiment"""
         self.category_keywords = {
             CategoryEnum.WATER_SUPPLY: [
-                "water", "pipe", "supply", "tank", "tanker", "low pressure", "contaminated"
-            ],
-            CategoryEnum.SANITATION: [
-                "garbage", "waste", "trash", "overflowing", "smell", "foul", "drain", "sweeping"
-            ],
-            CategoryEnum.ROADS_POTHOLES: [
-                "pothole", "road", "broken", "accident", "uneven", "repair", "pavement"
-            ],
-            CategoryEnum.STREETLIGHTS: [
-                "streetlight", "light", "dark", "flicker", "lamp", "bulb", "illumination"
+                "water", "pipe", "supply", "tank", "tanker", "low pressure", "contaminated", "leakage", "tap"
             ],
             CategoryEnum.ELECTRICITY: [
-                "electric", "power", "cut", "transformer", "wire", "sparking", "line"
+                "electric", "power", "cut", "transformer", "wire", "sparking", "line", "voltage", "outage"
+            ],
+            CategoryEnum.SANITATION: [
+                "garbage", "waste", "trash", "overflowing", "smell", "foul", "sweeping", "dustbin", "litter"
+            ],
+            CategoryEnum.ROADS_POTHOLES: [
+                "pothole", "road", "broken", "accident", "uneven", "repair", "pavement", "asphalt", "damaged"
+            ],
+            CategoryEnum.STREETLIGHTS: [
+                "streetlight", "light", "dark", "flicker", "lamp", "bulb", "illumination", "street lamp"
+            ],
+            CategoryEnum.DRAINAGE: [
+                "drainage", "drain", "stagnant", "water logging", "clogged", "sewage", "blockage"
+            ],
+            CategoryEnum.GARBAGE_COLLECTION: [
+                "garbage", "collection", "trash removal", "waste management", "dumping", "refuse"
+            ],
+            CategoryEnum.PARKS_GARDENS: [
+                "park", "garden", "green space", "vegetation", "trees", "landscaping", "maintenance"
             ],
         }
 
@@ -35,9 +44,14 @@ class NLPService:
         for category, keywords in self.category_keywords.items():
             scores[category] = sum(1 for kw in keywords if kw in text_lower)
 
-        # Choose category with highest score; fallback to Sanitation
+        # Choose category with highest score; fallback to Others if no matches
         best_category = max(scores, key=scores.get)
-        confidence = min(1.0, scores[best_category] / 3.0) if scores[best_category] > 0 else 0.5
+        confidence = min(1.0, scores[best_category] / 3.0) if scores[best_category] > 0 else 0.3
+        
+        # If no keywords matched, classify as Others
+        if scores[best_category] == 0:
+            best_category = CategoryEnum.OTHERS
+        
         return best_category, confidence
 
     def analyze_sentiment(self, text: str) -> Tuple[str, float]:

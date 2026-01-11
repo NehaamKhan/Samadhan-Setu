@@ -19,6 +19,19 @@ export default function Dashboard() {
   const { data: statsData, loading: statsLoading, error: statsError } = useStatistics();
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
   const [dateString, setDateString] = useState('');
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+  const [mapZoom, setMapZoom] = useState<number>(12);
+  const [categoryFilters, setCategoryFilters] = useState<Record<string, boolean>>({
+    'Water Supply': true,
+    'Electricity': true,
+    'Sanitation': true,
+    'Roads/Potholes': true,
+    'Streetlights': true,
+    'Drainage': true,
+    'Garbage Collection': true,
+    'Parks & Gardens': true,
+    'Others': true,
+  });
 
   useEffect(() => {
     const now = new Date();
@@ -30,6 +43,74 @@ export default function Dashboard() {
     };
     setDateString(now.toLocaleDateString('en-IN', options));
   }, []);
+
+  // Handle issue click from TopIssuesWidget
+  const handleIssueClick = (issue: any) => {
+    if (!issue || !issue.category) return;
+
+    // Prefer direct coordinates from issue when available
+    // 1) Exact cluster match by id when available
+    if (issue.cluster_id) {
+      const matchById: any = heatmapData.find((p: any) => String(p.id) === String(issue.cluster_id));
+      if (matchById) {
+        setMapCenter([matchById.latitude, matchById.longitude]);
+        setMapZoom(15);
+        setSelectedPoint(matchById);
+        return;
+      }
+    }
+
+    // 2) Prefer direct coordinates from issue when available
+    if (issue.latitude && issue.longitude) {
+      const point = {
+        latitude: issue.latitude,
+        longitude: issue.longitude,
+        complaint_count: issue.complaint_count,
+        priority_score: issue.priority_score,
+        categories: [issue.category],
+        summary: issue.location || 'Issue location',
+      };
+      setMapCenter([point.latitude, point.longitude]);
+      setMapZoom(15);
+      setSelectedPoint(point);
+      return;
+    }
+
+    // 3) Fallback: match best cluster by category and highest priority, break ties by complaint_count
+    const matchingPoint: any = heatmapData
+      .filter((point: any) => Array.isArray(point.categories) && point.categories.some((cat: string) =>
+        cat.toLowerCase().replace(/\s+/g, '') === issue.category.toLowerCase().replace(/\s+/g, '')
+      ))
+      .sort((a: any, b: any) => {
+        const prioDiff = (b.priority_score || 0) - (a.priority_score || 0);
+        if (prioDiff !== 0) return prioDiff;
+        return (b.complaint_count || 0) - (a.complaint_count || 0);
+      })[0];
+
+    if (matchingPoint) {
+      setMapCenter([matchingPoint.latitude, matchingPoint.longitude]);
+      setMapZoom(15);
+      setSelectedPoint(matchingPoint);
+    }
+  };
+
+  // Filter heatmap data based on selected categories
+  const filteredHeatmapData = heatmapData.filter((point: any) => {
+    // Check if any of the point's categories match enabled filters
+    return point.categories.some((cat: string) => {
+      // Normalize category names for matching
+      const normalizedCat = cat.toLowerCase().replace(/\s+/g, '');
+      return Object.entries(categoryFilters).some(([filterName, enabled]) => {
+        if (!enabled) return false;
+        const normalizedFilter = filterName.toLowerCase().replace(/\s+/g, '').replace('/', '');
+        return normalizedCat.includes(normalizedFilter) || normalizedFilter.includes(normalizedCat);
+      });
+    });
+  });
+
+  const handleFilterChange = (category: string) => {
+    setCategoryFilters(prev => ({ ...prev, [category]: !prev[category] }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
@@ -72,11 +153,11 @@ export default function Dashboard() {
       )}
 
       {/* Main Content */}
-      <main className="p-8">
+      <main className="p-6 lg:p-8">
         <div className="max-w-full mx-auto">
-          <div className="grid grid-cols-12 gap-6 h-[calc(100vh-340px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">
             {/* Left Panel: Statistics */}
-            <div className="col-span-3 flex flex-col gap-4 overflow-auto">
+            <div className="lg:col-span-3 flex flex-col gap-4">
               <StatsPanel
                 totalComplaints={statsData.total_complaints}
                 byCategory={statsData.by_category}
@@ -87,32 +168,42 @@ export default function Dashboard() {
               <div className="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-sm">
                 <p className="text-xs text-blue-200 uppercase mb-4 font-bold tracking-widest">📊 Category Filters</p>
                 <div className="space-y-3">
-                  {['Water Supply', 'Sanitation', 'Roads', 'Streetlights', 'Electricity'].map(
-                    (filter) => (
-                      <label key={filter} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/5 p-2 rounded-lg transition">
-                        <input
-                          type="checkbox"
-                          defaultChecked
-                          className="w-4 h-4 rounded accent-blue-500"
-                        />
-                        <span className="text-slate-200 font-medium">{filter}</span>
-                      </label>
-                    ),
-                  )}
+                  {Object.entries(categoryFilters).map(([filter, checked]) => (
+                    <label key={filter} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-white/5 p-2 rounded-lg transition">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleFilterChange(filter)}
+                        className="w-4 h-4 rounded accent-blue-500"
+                      />
+                      <span className="text-slate-200 font-medium">{filter}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* Center Panel: Heat Map */}
-            <div className="col-span-6">
-              <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden h-full shadow-2xl backdrop-blur-sm">
-                <HeatMap data={heatmapData} loading={heatmapLoading} onPointClick={setSelectedPoint} />
+            <div className="lg:col-span-6">
+              <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden h-[55vh] min-h-[320px] shadow-2xl backdrop-blur-sm">
+                <HeatMap 
+                  data={filteredHeatmapData} 
+                  loading={heatmapLoading} 
+                  onPointClick={setSelectedPoint}
+                  center={mapCenter || undefined}
+                  zoom={mapZoom}
+                  selectedPoint={selectedPoint}
+                />
               </div>
             </div>
 
             {/* Right Panel: Action Items */}
-            <div className="col-span-3">
-              <TopIssuesWidget issues={topIssuesData} loading={issuesLoading} />
+            <div className="lg:col-span-3">
+              <TopIssuesWidget 
+                issues={topIssuesData} 
+                loading={issuesLoading}
+                onIssueClick={handleIssueClick}
+              />
             </div>
           </div>
         </div>

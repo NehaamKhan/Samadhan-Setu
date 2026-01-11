@@ -1,6 +1,6 @@
 /**
  * About Page
- * Information about the CivicMind platform
+ * Information about the Samadhan Setu platform
  */
 
 'use client';
@@ -36,10 +36,9 @@ export default function AboutPage() {
   ];
 
   const team = [
-    { name: 'Ramesh Kumar', role: 'Ward Administrator', avatar: '👨‍💼' },
-    { name: 'Priya Sharma', role: 'Technical Lead', avatar: '👩‍💻' },
-    { name: 'Amit Patel', role: 'Community Manager', avatar: '👨‍💼' },
-    { name: 'Sneha Gupta', role: 'Data Analyst', avatar: '👩‍🔬' },
+    { name: 'Akbar Mujahid', avatar: '👨‍💼' },
+    { name: 'Kashif Tungekar', avatar: '👨‍💻' },
+    { name: 'Nehaam Khan', avatar: '👨‍🔧' },
   ];
 
   return (
@@ -57,7 +56,7 @@ export default function AboutPage() {
             Building a <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Smarter City</span> Together
           </h1>
           <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            CivicMind is a revolutionary platform that connects citizens with local authorities through intelligent complaint aggregation, real-time tracking, and AI-powered analytics.
+            Samadhan Setu is a revolutionary platform that connects citizens with local authorities through intelligent complaint aggregation, real-time tracking, and AI-powered analytics.
           </p>
         </div>
       </section>
@@ -115,15 +114,14 @@ export default function AboutPage() {
             <h2 className="text-4xl font-black text-white mb-4">Meet Our Team</h2>
             <p className="text-xl text-slate-300">Dedicated professionals working for you</p>
           </div>
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {team.map((member, index) => (
               <div
                 key={index}
                 className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm text-center hover:bg-white/10 transition-all hover:border-white/20 transform hover:scale-105"
               >
                 <div className="text-6xl mb-4">{member.avatar}</div>
-                <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
-                <p className="text-sm text-cyan-400 font-medium">{member.role}</p>
+                <h3 className="text-xl font-bold text-white">{member.name}</h3>
               </div>
             ))}
           </div>

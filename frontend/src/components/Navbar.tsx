@@ -30,8 +30,8 @@ export const Navbar: React.FC = () => {
               <span className="text-2xl">🏛️</span>
             </div>
             <div>
-              <h1 className="text-2xl font-black text-white tracking-tight">CivicMind</h1>
-              <p className="text-xs text-blue-200 font-medium">Smart Civic Solutions</p>
+              <h1 className="text-2xl font-black text-white tracking-tight">Samadhan Setu</h1>
+              <p className="text-xs text-blue-200 font-medium">AI-Powered Civic Intelligence Platform</p>
             </div>
           </Link>
 

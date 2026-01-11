@@ -1,5 +1,5 @@
 """
-Data Models for CivicMind
+Data Models for Samadhan Setu
 Using Pydantic for validation
 """
 
@@ -14,6 +14,10 @@ class CategoryEnum(str, Enum):
     ROADS_POTHOLES = "Roads/Potholes"
     STREETLIGHTS = "Streetlights"
     ELECTRICITY = "Electricity"
+    DRAINAGE = "Drainage"
+    GARBAGE_COLLECTION = "Garbage Collection"
+    PARKS_GARDENS = "Parks & Gardens"
+    OTHERS = "Others"
 
 class UrgencyLevel(str, Enum):
     LOW = "Low"

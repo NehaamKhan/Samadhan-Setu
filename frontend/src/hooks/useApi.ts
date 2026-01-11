@@ -12,9 +12,14 @@ export const useHeatmapData = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isInitialLoad = true;
+
     const fetchData = async () => {
       try {
-        setLoading(true);
+        // Only show loading spinner on initial load
+        if (isInitialLoad) {
+          setLoading(true);
+        }
         setError(null);
         const response = await dashboardApi.getHeatmapData();
         console.log('Heatmap response:', response.data);
@@ -23,14 +28,17 @@ export const useHeatmapData = () => {
         console.error('Error fetching heatmap:', err);
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (isInitialLoad) {
+          setLoading(false);
+          isInitialLoad = false;
+        }
       }
     };
 
     // Initial fetch
     fetchData();
 
-    // Poll every 30 seconds
+    // Poll every 30 seconds - silently updates without showing loader
     const interval = setInterval(fetchData, 30000);
 
     return () => clearInterval(interval);
@@ -45,24 +53,31 @@ export const useTopIssues = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isInitialLoad = true;
+
     const fetchData = async () => {
       try {
-        setLoading(true);
+        if (isInitialLoad) {
+          setLoading(true);
+        }
         setError(null);
-        const response = await dashboardApi.getTopIssues(3);
+        const response = await dashboardApi.getTopIssues(5);
         console.log('Top issues response:', response.data);
         setData(response.data.top_issues || []);
       } catch (err: any) {
         console.error('Error fetching top issues:', err);
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (isInitialLoad) {
+          setLoading(false);
+          isInitialLoad = false;
+        }
       }
     };
 
     fetchData();
 
-    // Poll every 30 seconds
+    // Poll every 30 seconds - silently updates without showing loader
     const interval = setInterval(fetchData, 30000);
 
     return () => clearInterval(interval);
@@ -77,9 +92,13 @@ export const useStatistics = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isInitialLoad = true;
+
     const fetchData = async () => {
       try {
-        setLoading(true);
+        if (isInitialLoad) {
+          setLoading(true);
+        }
         setError(null);
         const response = await dashboardApi.getStatistics();
         console.log('Statistics response:', response.data);
@@ -88,13 +107,16 @@ export const useStatistics = () => {
         console.error('Error fetching statistics:', err);
         setError(err.message);
       } finally {
-        setLoading(false);
+        if (isInitialLoad) {
+          setLoading(false);
+          isInitialLoad = false;
+        }
       }
     };
 
     fetchData();
 
-    // Poll every 30 seconds
+    // Poll every 30 seconds - silently updates without showing loader
     const interval = setInterval(fetchData, 30000);
 
     return () => clearInterval(interval);

@@ -43,9 +43,12 @@ interface HeatMapProps {
   data: HeatmapPoint[];
   loading: boolean;
   onPointClick?: (point: HeatmapPoint) => void;
+  center?: [number, number];
+  zoom?: number;
+  selectedPoint?: Partial<HeatmapPoint> | null;
 }
 
-export const HeatMap: React.FC<HeatMapProps> = ({ data, loading, onPointClick }) => {
+export const HeatMap: React.FC<HeatMapProps> = ({ data, loading, onPointClick, center, zoom, selectedPoint }) => {
   if (loading) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
@@ -60,5 +63,5 @@ export const HeatMap: React.FC<HeatMapProps> = ({ data, loading, onPointClick })
     );
   }
 
-  return <MapContent data={data} onPointClick={onPointClick} />;
+  return <MapContent data={data} onPointClick={onPointClick} center={center} zoom={zoom} selectedPoint={selectedPoint} />;
 };

@@ -44,7 +44,7 @@ export default function ContactPage() {
     {
       icon: <FiMail size={24} />,
       title: 'Email Us',
-      info: 'support@civicmind.gov.in',
+      info: 'support@samadhansetu.gov.in',
       detail: 'We reply within 24 hours',
       color: 'from-orange-500 to-red-500',
     },

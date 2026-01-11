@@ -24,14 +24,15 @@ export default function SubmitPage() {
   const [error, setError] = useState('');
 
   const categories = [
-    { value: 'water_supply', label: '💧 Water Supply', color: 'from-blue-500 to-cyan-500' },
-    { value: 'electricity', label: '⚡ Electricity', color: 'from-yellow-500 to-orange-500' },
-    { value: 'sanitation', label: '🧹 Sanitation', color: 'from-green-500 to-teal-500' },
-    { value: 'roads_potholes', label: '🛣️ Roads/Potholes', color: 'from-gray-500 to-slate-600' },
-    { value: 'streetlights', label: '💡 Street Lights', color: 'from-purple-500 to-pink-500' },
-    { value: 'drainage', label: '🌊 Drainage', color: 'from-indigo-500 to-blue-500' },
-    { value: 'garbage_collection', label: '🗑️ Garbage', color: 'from-red-500 to-orange-500' },
-    { value: 'parks_gardens', label: '🌳 Parks & Gardens', color: 'from-green-600 to-lime-500' },
+    { value: 'Water Supply', label: '💧 Water Supply', color: 'from-blue-500 to-cyan-500' },
+    { value: 'Electricity', label: '⚡ Electricity', color: 'from-yellow-500 to-orange-500' },
+    { value: 'Sanitation', label: '🧹 Sanitation', color: 'from-green-500 to-teal-500' },
+    { value: 'Roads/Potholes', label: '🛣️ Roads/Potholes', color: 'from-gray-500 to-slate-600' },
+    { value: 'Streetlights', label: '💡 Street Lights', color: 'from-purple-500 to-pink-500' },
+    { value: 'Drainage', label: '🌊 Drainage', color: 'from-indigo-500 to-blue-500' },
+    { value: 'Garbage Collection', label: '🗑️ Garbage', color: 'from-red-500 to-orange-500' },
+    { value: 'Parks & Gardens', label: '🌳 Parks & Gardens', color: 'from-green-600 to-lime-500' },
+    { value: 'Others', label: '📋 Others', color: 'from-slate-500 to-gray-600' },
   ];
 
   const getCurrentLocation = () => {

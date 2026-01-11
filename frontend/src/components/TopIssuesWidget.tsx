@@ -9,9 +9,12 @@ import React from 'react';
 import { FiAlertCircle, FiTrendingUp, FiMapPin, FiMessageSquare } from 'react-icons/fi';
 
 interface Issue {
+  cluster_id?: string;
   rank: number;
   category: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   complaint_count: number;
   priority_score: number;
   urgency: string;
@@ -20,6 +23,7 @@ interface Issue {
 interface TopIssuesWidgetProps {
   issues: Issue[];
   loading: boolean;
+  onIssueClick?: (issue: Issue) => void;
 }
 
 const UrgencyBadge: React.FC<{ urgency: string }> = ({ urgency }) => {
@@ -60,7 +64,7 @@ const UrgencyBadge: React.FC<{ urgency: string }> = ({ urgency }) => {
   );
 };
 
-const IssueCard: React.FC<{ issue: Issue; index: number }> = ({ issue, index }) => {
+const IssueCard: React.FC<{ issue: Issue; index: number; onClick?: () => void }> = ({ issue, index, onClick }) => {
   const rankColors = ['from-red-600 to-red-700', 'from-orange-600 to-orange-700', 'from-yellow-600 to-yellow-700'];
   const rankGradient = rankColors[index] || rankColors[2];
 
@@ -107,15 +111,21 @@ const IssueCard: React.FC<{ issue: Issue; index: number }> = ({ issue, index }) 
         </div>
 
         {/* Action Button */}
-        <button className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold py-2 rounded-lg transition transform hover:scale-105 active:scale-95">
-          View Details →
+        <button 
+          onClick={onClick}
+          className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold py-2 rounded-lg transition transform hover:scale-105 active:scale-95"
+        >
+          📍 View on Map →
         </button>
       </div>
     </div>
   );
 };
 
-export const TopIssuesWidget: React.FC<TopIssuesWidgetProps> = ({ issues, loading }) => {
+export const TopIssuesWidget: React.FC<TopIssuesWidgetProps> = ({ issues, loading, onIssueClick }) => {
+  const [showAll, setShowAll] = React.useState(false);
+  const displayedIssues = showAll ? issues : issues.slice(0, 3);
+
   if (loading) {
     return (
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 h-full flex items-center justify-center backdrop-blur-sm">
@@ -149,15 +159,25 @@ export const TopIssuesWidget: React.FC<TopIssuesWidgetProps> = ({ issues, loadin
             <p className="text-slate-400 text-xs mt-1">All systems running smoothly!</p>
           </div>
         ) : (
-          issues.map((issue, index) => <IssueCard key={issue.rank} issue={issue} index={index} />)
+          displayedIssues.map((issue, index) => (
+            <IssueCard 
+              key={issue.rank} 
+              issue={issue} 
+              index={index}
+              onClick={() => onIssueClick?.(issue)}
+            />
+          ))
         )}
       </div>
 
       {/* Footer */}
-      {issues.length > 0 && (
+      {issues.length > 3 && (
         <div className="mt-5 pt-4 border-t border-white/10">
-          <button className="w-full bg-gradient-to-r from-blue-600/50 to-indigo-600/50 hover:from-blue-600 hover:to-indigo-600 text-white text-xs font-bold py-3 rounded-lg transition border border-blue-400/30 hover:border-blue-400/60">
-            View All Issues (60)
+          <button 
+            onClick={() => setShowAll(!showAll)}
+            className="w-full bg-gradient-to-r from-blue-600/50 to-indigo-600/50 hover:from-blue-600 hover:to-indigo-600 text-white text-xs font-bold py-3 rounded-lg transition border border-blue-400/30 hover:border-blue-400/60"
+          >
+            {showAll ? `Show Top 3 Only ↑` : `View All Issues (${issues.length}) ↓`}
           </button>
         </div>
       )}

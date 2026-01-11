@@ -1,7 +1,7 @@
 {
-  "name": "civicmind-frontend",
+  "name": "samadhan-setu-frontend",
   "version": "1.0.0",
-  "description": "CivicMind Dashboard - Smart Civic Intelligence Platform",
+  "description": "Samadhan Setu Dashboard - Smart Civic Intelligence Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

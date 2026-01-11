@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, useMap, CircleMarker, Popup } from 'react-leaflet';
 import { FiInfo } from 'react-icons/fi';
 import L from 'leaflet';
-import 'leaflet.heat';
+
+// Load leaflet.heat plugin via dynamic import
+if (typeof window !== 'undefined') {
+  require('leaflet.heat');
+}
 
 interface HeatmapPoint {
   id: string;
@@ -21,12 +25,20 @@ interface HeatmapPoint {
 interface MapContentProps {
   data: HeatmapPoint[];
   onPointClick?: (point: HeatmapPoint) => void;
+  center?: [number, number];
+  zoom?: number;
+  selectedPoint?: Partial<HeatmapPoint> | null;
 }
 
 const HeatLayer: React.FC<{ data: HeatmapPoint[] }> = ({ data }) => {
   const map = useMap();
 
   useEffect(() => {
+    if (!map || !data || data.length === 0) {
+      console.warn('[HeatLayer] Missing map or data:', { map: !!map, data: data?.length });
+      return;
+    }
+
     // Weight heat intensity primarily by complaint density, with a small
     // contribution from priority score to emphasize critical clusters.
     const maxCount = Math.max(...data.map((p) => p.complaint_count), 1);
@@ -37,35 +49,89 @@ const HeatLayer: React.FC<{ data: HeatmapPoint[] }> = ({ data }) => {
       return [p.latitude, p.longitude, weight];
     });
 
-    const layer = (L as any).heatLayer(points, {
-      radius: 28,
-      blur: 18,
-      maxZoom: 17,
-      gradient: {
-        0.0: '#0a3b69',
-        0.2: '#2563eb',
-        0.4: '#22c55e',
-        0.7: '#f59e0b',
-        1.0: '#ef4444',
-      },
-    });
+    try {
+      const HeatLayer = (L as any).heatLayer;
+      if (!HeatLayer) {
+        console.error('[HeatLayer] L.heatLayer not available. Ensure leaflet.heat is loaded.');
+        return;
+      }
 
-    layer.addTo(map);
-    return () => {
-      layer.remove();
-    };
+      const layer = HeatLayer(points, {
+        radius: 30,
+        blur: 20,
+        maxZoom: 17,
+        minOpacity: 0.2,
+        gradient: {
+          0.0: '#0a3b69',
+          0.2: '#2563eb',
+          0.4: '#22c55e',
+          0.7: '#f59e0b',
+          1.0: '#ef4444',
+        },
+      });
+
+      layer.addTo(map);
+      console.log('[HeatLayer] Successfully added to map');
+
+      return () => {
+        layer.remove();
+      };
+    } catch (err) {
+      console.error('[HeatLayer] Error:', err);
+    }
   }, [data, map]);
 
   return null;
 };
 
-export const MapContent: React.FC<MapContentProps> = ({ data, onPointClick }) => {
-  const mapCenter: [number, number] = [
+// Component to update map view when user location changes
+const MapViewUpdater: React.FC<{ center: [number, number]; zoom: number }> = ({
+  center,
+  zoom,
+}) => {
+  const map = useMap();
+
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 0.6 });
+  }, [center, zoom, map]);
+
+  return null;
+};
+
+export const MapContent: React.FC<MapContentProps> = ({ data, onPointClick, center: propCenter, zoom: propZoom, selectedPoint }) => {
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Fallback center (Delhi)
+  const fallbackCenter: [number, number] = [
     parseFloat(process.env.NEXT_PUBLIC_MAP_CENTER_LAT || '28.7041'),
     parseFloat(process.env.NEXT_PUBLIC_MAP_CENTER_LNG || '77.1025'),
   ];
 
-  const zoomLevel = parseInt(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL || '12');
+  // Prioritize: prop center > user location > fallback
+  const mapCenter = propCenter || userLocation || fallbackCenter;
+  const zoomLevel = propZoom || parseInt(process.env.NEXT_PUBLIC_MAP_ZOOM_LEVEL || '12');
+
+  // Request user's current location on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          console.log('[MapContent] User location detected:', latitude, longitude);
+        },
+        (error) => {
+          console.warn('[MapContent] Geolocation error:', error.message);
+          setLocationError(error.message);
+          // Silently fall back to default center
+        }
+      );
+    }
+  }, []);
+
   return (
     <div className="relative w-full h-full">
       <MapContainer
@@ -75,7 +141,30 @@ export const MapContent: React.FC<MapContentProps> = ({ data, onPointClick }) =>
         className="rounded-xl"
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+        <MapViewUpdater center={mapCenter} zoom={zoomLevel} />
         <HeatLayer data={data} />
+        {selectedPoint && selectedPoint.latitude && selectedPoint.longitude && (
+          <CircleMarker
+            center={[selectedPoint.latitude, selectedPoint.longitude]}
+            radius={12}
+            color="#2563eb"
+            weight={2}
+            fillColor="#60a5fa"
+            fillOpacity={0.35}
+          >
+            <Popup>
+              <div className="text-sm font-semibold text-slate-800">
+                {selectedPoint.summary || 'Selected issue'}
+              </div>
+              <div className="text-xs text-slate-600 mt-1">
+                {selectedPoint.categories?.[0] || 'Category'} • {selectedPoint.complaint_count || 'N/A'} reports
+              </div>
+              {selectedPoint.priority_score && (
+                <div className="text-xs text-slate-500 mt-1">Priority: {selectedPoint.priority_score}/10</div>
+              )}
+            </Popup>
+          </CircleMarker>
+        )}
       </MapContainer>
 
       {/* Legend */}
@@ -96,6 +185,13 @@ export const MapContent: React.FC<MapContentProps> = ({ data, onPointClick }) =>
           <span>Medium</span>
           <span>High</span>
         </div>
+
+        {/* Location indicator */}
+        {userLocation && (
+          <div className="mt-3 pt-3 border-t border-slate-300 text-[10px] text-slate-600">
+            📍 Showing your location
+          </div>
+        )}
       </div>
     </div>
   );

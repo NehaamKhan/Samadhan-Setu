@@ -15,7 +15,7 @@ mongodb = MongoDatabase()
 async def connect_to_mongo():
     """Establish MongoDB connection"""
     mongodb.client = AsyncIOMotorClient(os.getenv("MONGODB_URL", "mongodb://localhost:27017"))
-    mongodb.db = mongodb.client[os.getenv("DATABASE_NAME", "civicmind")]
+    mongodb.db = mongodb.client[os.getenv("DATABASE_NAME", "samadhansetu")]
     print("[+] Connected to MongoDB")
 
 async def close_mongo_connection():

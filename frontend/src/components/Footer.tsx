@@ -21,8 +21,8 @@ export const Footer: React.FC = () => {
                 <span className="text-xl">🏛️</span>
               </div>
               <div>
-                <h3 className="text-xl font-black">CivicMind</h3>
-                <p className="text-xs text-blue-200">Smart Civic Solutions</p>
+                <h3 className="text-xl font-black">Samadhan Setu</h3>
+                <p className="text-xs text-blue-200">AI-Powered Civic Intelligence Platform</p>
               </div>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed">
@@ -61,7 +61,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-center gap-2 text-sm text-slate-300">
                 <FiMail className="text-cyan-400 flex-shrink-0" size={16} />
-                <span>support@civicmind.gov.in</span>
+                <span>support@samadhansetu.gov.in</span>
               </li>
             </ul>
           </div>
@@ -106,7 +106,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-400">
-            © 2026 CivicMind. All rights reserved. | Developed for Smart Cities Mission
+            © 2026 Samadhan Setu. All rights reserved. | Developed for Smart Cities Mission
           </p>
           <div className="flex gap-4 text-sm text-slate-400">
             <Link href="#" className="hover:text-cyan-400 transition">

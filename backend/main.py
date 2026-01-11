@@ -1,5 +1,5 @@
 """
-CivicMind Backend - Main Application Entry Point
+Samadhan Setu Backend - Main Application Entry Point
 FastAPI server for complaint aggregation, NLP classification, and geospatial analysis
 """
 
@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(
-    title="CivicMind API",
+    title="Samadhan Setu API",
     description="AI-powered civic complaint intelligence platform",
     version="1.0.0"
 )
@@ -38,7 +38,7 @@ app.add_middleware(
 async def root():
     """Health check endpoint"""
     return {
-        "message": "CivicMind API is running",
+        "message": "Samadhan Setu API is running",
         "status": "operational",
         "version": "1.0.0"
     }

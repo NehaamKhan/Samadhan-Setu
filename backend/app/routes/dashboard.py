@@ -142,8 +142,11 @@ async def get_top_issues(
 
             issues.append({
                 "rank": None,  # Will be set after sorting
+                "cluster_id": str(cluster_id),
                 "category": clean_category_name(cluster_complaints[0].category),
                 "location": f"{cluster_complaints[0].location.area_name or 'Area'}",
+                "latitude": avg_lat,
+                "longitude": avg_long,
                 "complaint_count": frequency,
                 "priority_score": round(priority_score, 1),
                 "urgency": "Critical" if priority_score >= 8 else "High" if priority_score >= 5 else "Medium"
